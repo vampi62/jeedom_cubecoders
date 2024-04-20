@@ -1,0 +1,67 @@
+<div class="eqLogic eqLogic-widget allowResize #eqType#" style="width:#width#;height:#height#;#style#" data-eqLogic_id="#id#" data-eqLogic_uid="#uid#" data-version="#version#" data-eqType="#eqType#" data-translate-category="#translate_category#" data-category="#category#" data-tags="#tags#" >
+    <script>    
+		if ('#refresh_id#' != ''){
+			document.querySelector('.eqLogic[data-eqLogic_uid="#uid#"] .refresh').addEventListener('click', function () {
+				jeedom.cmd.execute({id: '#refresh_id#'});
+			});
+		}else{
+			let eqLogic = document.querySelector('.eqLogic[data-eqLogic_uid="#uid#"] .refresh');
+			eqLogic.parentNode.removeChild(eqLogic);
+		}
+		function #uid#js_cubecoders_printhtmltable(list,nom_tableau,headtable,commande) {
+            let _table = document.querySelector('.eqLogic[data-eqLogic_uid=#uid#] tbody');
+			_table.innerHTML = '';
+			let player = new Array();
+			if (list != "") {
+				line = list.split('-!-');
+				for(j = 0; line.length > j; j++) {
+					local_tr = document.createElement("tr");
+					lineelement = line[j].split('-:-');
+					for(k = 0; lineelement.length > k; k++) {
+						local_td = document.createElement("td");
+						local_td.setAttribute("style","padding: 5px;");
+						local_td.innerHTML = lineelement[k];
+						local_tr.appendChild(local_td);
+					}
+					for(k = 0; commande.length > k; k++) {
+						local_td = document.createElement("td");
+						bouton_table = commande[k]
+						bouton_table = bouton_table.replaceAll("#value#", lineelement[0]); // remplace value par la valeur de la premiere colonne de la ligne
+						player.push(lineelement[0]);
+						local_td.innerHTML = bouton_table;
+						local_tr.appendChild(local_td);
+					}
+					_table.appendChild(local_tr);
+				}
+			}
+			return player; // retourne la liste des joueurs pour les utiliser dans l'identification les commandes
+		}
+    </script> 
+    <center class="widget-name">
+		<span class="warning" title="#alert_name#">
+			<i class='#alert_icon#'></i>
+		</span>
+        <span class="cmd refresh pull-right cursor" data-cmd_id="#refresh_id#">
+			<i class="fas fa-sync"></i>
+		</span>
+		<span class="reportModeVisible">#name_display# <span class="object_name">#object_name#</span></span>
+		<a href="#eqLink#" class="reportModeHidden">#name_display# <span class="object_name">#object_name#</span></a>
+	</center>   
+    <div>
+		<center>
+            <table style="width: 90%;" class="table table-condensed table-bordered table-striped">
+                <thead>
+                    <tr>
+						<th>ID</th>
+                        <th>Nom</th>
+                        <th>Serveur</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+		</center>
+	</div>
+</div>
