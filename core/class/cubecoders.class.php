@@ -125,6 +125,9 @@ class cubecoders extends eqLogic {
 
   // Fonction exécutée automatiquement après la sauvegarde (création ou mise à jour) de l'équipement
   public function postSave() {
+    $this->createCommand('refresh','Rafraichir','action','other');
+    $this->createCommand('msg','message','info','string');
+    $this->createCommand('status','status','info','string');
   }
 
   // Fonction exécutée automatiquement avant la suppression de l'équipement
@@ -135,6 +138,27 @@ class cubecoders extends eqLogic {
   public function postRemove() {
   }
 
+  private function createCommand($newcmd,$newname,$newtype,$newsubtype,$newunit = "",$newtemplate = 'default'){
+    $newelement = $this->getCmd(null, $newcmd);
+    if (!is_object($newelement)) {
+      $newelement = new cubecodersCmd();
+      $newelement->setName(__($newname, __FILE__));
+    }
+    $newelement->setEqLogic_id($this->getId());
+    $newelement->setLogicalId($newcmd);
+    $newelement->setType($newtype);
+    $newelement->setSubType($newsubtype);
+    $newelement->setTemplate('dashboard',$newtemplate);
+    if ($newtype == 'info') {
+      $newelement->setGeneric_type('GENERIC_INFO');
+    } else {
+      $newelement->setGeneric_type('GENERIC_ACTION');
+    }
+    if ($newunit != "") {
+      $newelement->setUnite($newunit);
+    }
+    $newelement->save();
+  }
   /*
   * Permet de crypter/décrypter automatiquement des champs de configuration des équipements
   * Exemple avec le champ "Mot de passe" (password)
@@ -152,25 +176,283 @@ class cubecoders extends eqLogic {
   */
 
   /*     * **********************Getteur Setteur*************************** */
+  private function _Login() {
+    $adresse = $this->getConfiguration("adresse", "localhost");
+    $port = $this->getConfiguration("port", "8080");
+    $protocol = $this->getConfiguration("protocol", "http");
+    $utilisateur = $this->getConfiguration("utilisateur", "admin");
+    $password = $this->getConfiguration("password", "admin");
+    $result = $this->_requestAPI($protocol . '://' . $adresse . ':' . $port . '/API/Core/Login', 'POST', '{"username":"' . $utilisateur . '","password":"' . $password . '", "rememberMe":true, "token":""}');
+    log::add('cubecoders','debug',$result);
+    if (!$result['success']) {
+      return false;
+    }
+    $this->setConfiguration("token", $result['rememberMeToken']);
+    $this->setConfiguration("SESSIONID", $result['sessionID']);
+    $this->save();
+    return true;
+  }
 
-  public function request($url) {
+  private function _getInstances($token,$sessionId) {
+    $adresse = $this->getConfiguration("adresse", "localhost");
+    $port = $this->getConfiguration("port", "8080");
+    $protocol = $this->getConfiguration("protocol", "http");
+    $instances = array();
+    $result = $this->_requestAPI($protocol . '://' . $adresse . ':' . $port . '/API/ADSModule/GetInstances', 'POST', '{"token":"' . $token . '","SESSIONID":"' . $sessionId . '"}');
+    log::add('cubecoders','debug',$result);
+    if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
+      return [false,$instances];
+    }
+    if ((!isset($result[0])) && (isset($result[0]['AvailableInstances']))) {
+      $this->setConfiguration("token", "");
+      $this->setConfiguration("SESSIONID", "");
+      $this->save();
+      return [false,$instances];
+    }
+    foreach ($result[0]['AvailableInstances'] as $instance) {
+      $instances[$instance['InstanceID']] = [$instance['InstanceName'],$instance['FriendlyName'],$instance['Module'],$instance['AppState']];
+    }
+    return [true,$instances];
+  }
+
+  private function _addNewInstance($uuid,$instanceName,$friendlyName,$module) {
+    $this->createCommand('fname-' . $uuid,'fname-' . $instanceName,'info','string');
+    $this->createCommand('status-' . $uuid,'status-' . $instanceName,'info','string');
+    $this->createCommand('module-' . $uuid,'module-' . $instanceName,'info','string');
+    $this->createCommand('start-' . $uuid,'start-' . $instanceName,'action','other');
+    $this->createCommand('stop-' . $uuid,'stop-' . $instanceName,'action','other');
+    $this->createCommand('restart-' . $uuid,'restart-' . $instanceName,'action','other');
+    $this->createCommand('kill-' . $uuid,'kill-' . $instanceName,'action','other');
+    $this->createCommand('pause-' . $uuid,'pause-' . $instanceName,'action','other');
+    $this->createCommand('resume-' . $uuid,'resume-' . $instanceName,'action','other');
+    $this->checkAndUpdateCmd('module-' . $uuid, $module);
+    $this->checkAndUpdateCmd('fname-' . $uuid, $friendlyName);
+    log::add('cubecoders','debug','addNewInstance');
+    log::add('cubecoders','debug',$uuid);
+    log::add('cubecoders','debug',$instanceName);
+  }
+
+  private function _deleteInstance($uuid) {
+    $this->getCmd(null, 'status-' . $uuid)->remove();
+    $this->getCmd(null, 'start-' . $uuid)->remove();
+    $this->getCmd(null, 'stop-' . $uuid)->remove();
+    $this->getCmd(null, 'restart-' . $uuid)->remove();
+    $this->getCmd(null, 'kill-' . $uuid)->remove();
+    $this->getCmd(null, 'pause-' . $uuid)->remove();
+    $this->getCmd(null, 'resume-' . $uuid)->remove();
+    log::add('cubecoders','debug','deleteInstance');
+    log::add('cubecoders','debug',$uuid);
+  }
+
+  private function _getExistingInstances() {
+    $uuids = array();
+    foreach ($this->getCmd('info') as $cmd) {
+      if (strpos($cmd->getLogicalId(),'status-') !== false) {
+        $uuids[] = str_replace('status-','',$cmd->getLogicalId());
+      }
+    }
+    return $uuids;
+  }
+
+  public function refreshInstanceList() {
+    $token = $this->getConfiguration("token", "");
+    $sessionId = $this->getConfiguration("SESSIONID", "");
+    $retry = 0;
+    do {
+      if ($token == "" || $sessionId == "") {
+        if (!$this->_Login()) {
+          return false;
+        }
+        sleep(0.3);
+        $token = $this->getConfiguration("token", "");
+        $sessionId = $this->getConfiguration("SESSIONID", "");
+      }
+      $instances = $this->_getInstances($token,$sessionId);
+      $retry++;
+    } while ($retry < 3 && !$instances[0]);
+    if (!$instances[0]) {
+      $this->setConfiguration("token", "");
+      $this->setConfiguration("SESSIONID", "");
+      $this->checkAndUpdateCmd('msg', 'Impossible de se connecter au serveur');
+      $this->checkAndUpdateCmd('status', 'NOK');
+      $this->save();
+      return;
+    }
+    $existingInstances = $this->_getExistingInstances();
+    foreach ($instances[1] as $uuid => $instanceInfo) {
+      if (!in_array($uuid,$existingInstances)) {
+        $this->_addNewInstance($uuid,$instanceInfo[0],$instanceInfo[1],$instanceInfo[2]);
+      }
+    }
+    foreach ($existingInstances as $uuid) {
+      if (!isset($instances[1][$uuid])) {
+        $this->_deleteInstance($uuid);
+      }
+    }
+    foreach ($instances[1] as $uuid => $instanceInfo) {
+      $this->checkAndUpdateCmd('status-' . $uuid, $instanceInfo[3]);
+    }
+    /*
+    50 --> sleep
+    45 --> prepare sleep
+    20 --> run
+    10 --> starting
+    40 --> stopping
+    0 --> stop
+    30 --> restarting
+    -1 --> unknown */
+    $this->checkAndUpdateCmd('msg', '');
+    $this->checkAndUpdateCmd('status', 'OK');
+  }
+
+  private function _LoginInstance($uuid) {
+    $adresse = $this->getConfiguration("adresse", "localhost");
+    $port = $this->getConfiguration("port", "8080");
+    $protocol = $this->getConfiguration("protocol", "http");
+    $utilisateur = $this->getConfiguration("utilisateur", "admin");
+    $password = $this->getConfiguration("password", "admin");
+    $_url = $protocol . '://' . $adresse . ':' . $port . '/API/ADSModule/Servers/' . $uuid;
+    $result = $this->_requestAPI($_url . '/API/Core/Login', 'POST', '{"username":"' . $utilisateur . '","password":"' . $password . '", "rememberMe":true, "token":""}');
+    log::add('cubecoders','debug','test in instance');
+    log::add('cubecoders','debug',$result['success']);
+    if (!$result['success']) {
+      return [false,'','',''];
+    }
+    log::add('cubecoders','debug','logged in instance');
+    return [true,$result['rememberMeToken'],$result['sessionID'],$_url];
+  }
+
+  public function startInstance($uuid) {
+    $instanceSession = $this->_LoginInstance($uuid);
+    if (!$instanceSession[0]) {
+      $this->checkAndUpdateCmd('msg', 'Impossible de se connecter à l\'instance');
+      $this->checkAndUpdateCmd('status', 'NOK');
+      return;
+    }
+    $result = $this->_requestAPI($instanceSession[3] . '/API/Core/Start', 'POST', '{"token":"' . $instanceSession[1] . '","SESSIONID":"' . $instanceSession[2] . '"}');
+    log::add('cubecoders','debug',$result);
+    if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
+      $this->checkAndUpdateCmd('msg', 'Impossible de démarrer l\'instance');
+      $this->checkAndUpdateCmd('status', 'NOK');
+    }
+    // no body if success
+    if (empty($result)) {
+      return;
+    }
+  }
+
+  public function stopInstance($uuid) {
+    $instanceSession = $this->_LoginInstance($uuid);
+    if (!$instanceSession[0]) {
+      $this->checkAndUpdateCmd('msg', 'Impossible de se connecter à l\'instance');
+      $this->checkAndUpdateCmd('status', 'NOK');
+      return;
+    }
+    $result = $this->_requestAPI($instanceSession[3] . '/API/Core/Stop', 'POST', '{"token":"' . $instanceSession[1] . '","SESSIONID":"' . $instanceSession[2] . '"}');
+    if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
+      $this->checkAndUpdateCmd('msg', 'Impossible d\'arrêter l\'instance');
+      $this->checkAndUpdateCmd('status', 'NOK');
+    }
+    // no body if success
+    if (empty($result)) {
+      return;
+    }
+  }
+
+  public function restartInstance($uuid) {
+    $instanceSession = $this->_LoginInstance($uuid);
+    if (!$instanceSession[0]) {
+      $this->checkAndUpdateCmd('msg', 'Impossible de se connecter à l\'instance');
+      $this->checkAndUpdateCmd('status', 'NOK');
+      return;
+    }
+    $result = $this->_requestAPI($instanceSession[3] . '/API/Core/Restart', 'POST', '{"token":"' . $instanceSession[1] . '","SESSIONID":"' . $instanceSession[2] . '"}');
+    if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
+      $this->checkAndUpdateCmd('msg', 'Impossible de redémarrer l\'instance');
+      $this->checkAndUpdateCmd('status', 'NOK');
+    }
+    // no body if success
+    if (empty($result)) {
+      return;
+    }
+  }
+
+  public function killInstance($uuid) {
+    $instanceSession = $this->_LoginInstance($uuid);
+    if (!$instanceSession[0]) {
+      $this->checkAndUpdateCmd('msg', 'Impossible de se connecter à l\'instance');
+      $this->checkAndUpdateCmd('status', 'NOK');
+      return;
+    }
+    $result = $this->_requestAPI($instanceSession[3] . '/API/Core/Kill', 'POST', '{"token":"' . $instanceSession[1] . '","SESSIONID":"' . $instanceSession[2] . '"}');
+    if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
+      $this->checkAndUpdateCmd('msg', 'Impossible de tuer l\'instance');
+      $this->checkAndUpdateCmd('status', 'NOK');
+    }
+    // no body if success
+    if (empty($result)) {
+      return;
+    }
+  }
+
+  public function pauseInstance($uuid) {
+    $instanceSession = $this->_LoginInstance($uuid);
+    if (!$instanceSession[0]) {
+      $this->checkAndUpdateCmd('msg', 'Impossible de se connecter à l\'instance');
+      $this->checkAndUpdateCmd('status', 'NOK');
+      return;
+    }
+    $result = $this->_requestAPI($instanceSession[3] . '/API/Core/Pause', 'POST', '{"token":"' . $instanceSession[1] . '","SESSIONID":"' . $instanceSession[2] . '"}');
+    if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
+      $this->checkAndUpdateCmd('msg', 'Impossible de mettre en pause l\'instance');
+      $this->checkAndUpdateCmd('status', 'NOK');
+    }
+    // no body if success
+    if (empty($result)) {
+      return;
+    }
+  }
+
+  public function resumeInstance($uuid) {
+    $instanceSession = $this->_LoginInstance($uuid);
+    if (!$instanceSession[0]) {
+      $this->checkAndUpdateCmd('msg', 'Impossible de se connecter à l\'instance');
+      $this->checkAndUpdateCmd('status', 'NOK');
+      return;
+    }
+    $result = $this->_requestAPI($instanceSession[3] . '/API/Core/Resume', 'POST', '{"token":"' . $instanceSession[1] . '","SESSIONID":"' . $instanceSession[2] . '"}');
+    if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
+      $this->checkAndUpdateCmd('msg', 'Impossible de reprendre l\'instance');
+      $this->checkAndUpdateCmd('status', 'NOK');
+    }
+    // no body if success
+    if (empty($result)) {
+      return;
+    }
+  }
+
+
+  private function _requestAPI($url, $method = 'GET', $data = null) {
     $request_http = new com_http($url);
     $request_http->setNoReportError(true);
-    $request_http->setHeader(array('Content-type: application/json','Accept: application/json'));
-    $result=$request_http->exec();
-    if ($result == "") {
-      return "";
+    $request_http->setAllowEmptyReponse(true);
+    $request_http->setHeader(array('Content-type: application/json','Accept: application/json','User-Agent: PostmanRuntime/7.37.3'));
+    if ($method == 'POST') {
+      $request_http->setPost($data);
     }
-    log::add('mcmyadmin','debug',$url);
-    log::add('mcmyadmin','debug',$result);
+    $result=$request_http->exec();
+    log::add('cubecoders','debug',$url);
+    log::add('cubecoders','debug', $result);
     return json_decode($result,true);
   }
+
   public function toHtml($_version = 'dashboard') {
     $replace = $this->preToHtml($_version);
     if (!is_array($replace)) {
       return $replace;
     }
     $version = jeedom::versionAlias($_version);
+    $replace['#tableInstance#'] = "";
     foreach ($this->getCmd('info') as $cmd) {
       if (!is_object($cmd)) {
         continue;
@@ -186,53 +468,13 @@ class cubecoders extends eqLogic {
         $replace['#' . $cmd->getLogicalId() . '_history#'] = 'history cursor';
       }
     }
-    foreach ($this->getCmd('action') as $cmd) {
-      if (!is_object($cmd)) {
-        continue;
-      }
-      $replace['#' . $cmd->getLogicalId() . '_id#'] = $cmd->getId();
-      if ($cmd->getConfiguration('listValue', '') != '') {
-        $listOption = '';
-        $elements = explode(';', $cmd->getConfiguration('listValue', ''));
-        $foundSelect = false;
-        foreach ($elements as $element) {
-          list($item_val, $item_text) = explode('|', $element);
-          //$coupleArray = explode('|', $element);
-          $cmdValue = $cmd->getCmdValue();
-          if (is_object($cmdValue) && $cmdValue->getType() == 'info') {
-            if ($cmdValue->execCmd() == $item_val) {
-              $listOption .= '<option value="' . $item_val . '" selected>' . $item_text . '</option>';
-              $foundSelect = true;
-            } else {
-              $listOption .= '<option value="' . $item_val . '">' . $item_text . '</option>';
-            }
-          } else {
-            $listOption .= '<option value="' . $item_val . '">' . $item_text . '</option>';
-          }
-        }
-        //if (!$foundSelect) {
-        //	$listOption = '<option value="">Aucun</option>' . $listOption;
-        //}
-        //$replace['#listValue#'] = $listOption;
-        $replace['#' . $cmd->getLogicalId() . '_id_listValue#'] = $listOption;
-        $replace['#' . $cmd->getLogicalId() . '_listValue#'] = $listOption;
-      }
-    }
     $parameters = $this->getDisplay('parameters');
     if (is_array($parameters)) {
       foreach ($parameters as $key => $value) {
         $replace['#' . $key . '#'] = $value;
       }
     }
-    $replace['#heightconfiglist#'] = strval(intval($replace['#height#'])-70);
-    $replace['#widthconfiglist#'] = strval(intval($replace['#width#']));
-    $replace['#heightbackuplist#'] = strval(intval($replace['#height#'])-70);
-    $replace['#widthbackuplist#'] = strval(intval($replace['#width#']));
-    $replace['#heightchat#'] = strval(intval($replace['#height#'])-150);
-    $replace['#widthchat#'] = strval(intval($replace['#width#']));
-    $replace['#heightuserlist#'] = strval(intval($replace['#height#'])-70);
-    $replace['#widthuserlist#'] = strval(intval($replace['#width#']));
-    $widgetType = getTemplate('core', $version, 'box', __CLASS__);
+    $widgetType = getTemplate('core', $version, 'cubecoders', __CLASS__);
 		return $this->postToHtml($_version, template_replace($replace, $widgetType));
 	}
 }
@@ -259,11 +501,30 @@ class cubecodersCmd extends cmd {
   // Exécution d'une commande
   public function execute($_options = array()) {
     $eqlogic = $this->getEqLogic(); //récupère l'éqlogic de la commande $this
-    $adresse = $eqlogic->getConfiguration("adresse", "localhost");
-    $port = $eqlogic->getConfiguration("port", "8080");
-    $utilisateur = $eqlogic->getConfiguration("utilisateur", "admin");
-    $password = $eqlogic->getConfiguration("password", "admin");
-    $protocol = $eqlogic->getConfiguration("protocol", "http");
+    log::add('cubecoders','debug',$this->getLogicalId());
+    switch ($this->getLogicalId()) {
+      case 'refresh':
+        $eqlogic->refreshInstanceList();
+      break;
+      default:
+        if (strpos($this->getLogicalId(),'start-') !== false) {
+          $eqlogic->startInstance(str_replace('start-','',$this->getLogicalId()));
+        } elseif (strpos($this->getLogicalId(),'stop-') !== false) {
+          $eqlogic->startInstance(str_replace('stop-','',$this->getLogicalId()));
+        } elseif (strpos($this->getLogicalId(),'restart-') !== false) {
+          $eqlogic->startInstance(str_replace('restart-','',$this->getLogicalId()));
+        } elseif (strpos($this->getLogicalId(),'kill-') !== false) {
+          $eqlogic->startInstance(str_replace('kill-','',$this->getLogicalId()));
+        } elseif (strpos($this->getLogicalId(),'pause-') !== false) {
+          $eqlogic->startInstance(str_replace('pause-','',$this->getLogicalId()));
+        } elseif (strpos($this->getLogicalId(),'resume-') !== false) {
+          $eqlogic->startInstance(str_replace('resume-','',$this->getLogicalId()));
+        } else {
+          log::add('cubecoders','debug','Commande inconnue');
+          log::add('cubecoders','debug',$this->getLogicalId());
+        }
+      break;
+    }
   }
 
   /*     * **********************Getteur Setteur*************************** */

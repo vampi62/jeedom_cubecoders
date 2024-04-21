@@ -22,66 +22,66 @@ if (!isConnect()) {
   die();
 }
 ?>
-<form class="form-horizontal">
-  <fieldset>
-    <div class="form-group">
-    </div>
-  </fieldset>
-</form>
 
 <script>
-  document.querySelector("input[data-l1key='functionality::cron::enable']").addEventListener('change', function(e) {
+  document.querySelector('input[data-l1key="functionality::cron::enable"]').addEventListener('change', function(e) {
     if (e.target.checked) {
-      document.querySelector("input[data-l1key='functionality::cron5::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cron10::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cron15::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cron30::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cronHourly::enable']").removeAttribute('checked');
+      document.querySelector('input[data-l1key="functionality::cron5::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cron10::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cron15::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cron30::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cronHourly::enable"]').checked = false;
+      console.log('test');
     }
   });
-  document.querySelector("input[data-l1key='functionality::cron5::enable']").addEventListener('change', function(e) {
+  document.querySelector('input[data-l1key="functionality::cron5::enable"]').addEventListener('change', function(e) {
     if (e.target.checked) {
-      document.querySelector("input[data-l1key='functionality::cron::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cron10::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cron15::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cron30::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cronHourly::enable']").removeAttribute('checked');
+      document.querySelector('input[data-l1key="functionality::cron::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cron10::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cron15::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cron30::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cronHourly::enable"]').checked = false;
+      console.log('test');
     }
   });
-  document.querySelector("input[data-l1key='functionality::cron10::enable']").addEventListener('change', function(e) {
+  document.querySelector('input[data-l1key="functionality::cron10::enable"]').addEventListener('change', function(e) {
     if (e.target.checked) {
-      document.querySelector("input[data-l1key='functionality::cron::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cron5::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cron15::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cron30::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cronHourly::enable']").removeAttribute('checked');
+      document.querySelector('input[data-l1key="functionality::cron::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cron5::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cron15::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cron30::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cronHourly::enable"]').checked = false;
+      console.log('test');
     }
   });
-  document.querySelector("input[data-l1key='functionality::cron15::enable']").addEventListener('change', function(e) {
+  document.querySelector('input[data-l1key="functionality::cron15::enable"]').addEventListener('change', function(e) {
     if (e.target.checked) {
-      document.querySelector("input[data-l1key='functionality::cron::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cron5::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cron10::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cron30::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cronHourly::enable']").removeAttribute('checked');
+      document.querySelector('input[data-l1key="functionality::cron::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cron5::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cron10::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cron30::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cronHourly::enable"]').checked = false;
+      console.log('test');
     }
   });
-  document.querySelector("input[data-l1key='functionality::cron30::enable']").addEventListener('change', function(e) {
+  document.querySelector('input[data-l1key="functionality::cron30::enable"]').addEventListener('change', function(e) {
     if (e.target.checked) {
-      document.querySelector("input[data-l1key='functionality::cron::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cron5::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cron10::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cron15::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cronHourly::enable']").removeAttribute('checked');
+      document.querySelector('input[data-l1key="functionality::cron::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cron5::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cron10::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cron15::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cronHourly::enable"]').checked = false;
+      console.log('test');
     }
   });
-  document.querySelector("input[data-l1key='functionality::cronHourly::enable']").addEventListener('change', function(e) {
+  document.querySelector('input[data-l1key="functionality::cronHourly::enable"]').addEventListener('change', function(e) {
     if (e.target.checked) {
-      document.querySelector("input[data-l1key='functionality::cron::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cron5::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cron10::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cron15::enable']").removeAttribute('checked');
-      document.querySelector("input[data-l1key='functionality::cron30::enable']").removeAttribute('checked');
+      document.querySelector('input[data-l1key="functionality::cron::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cron5::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cron10::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cron15::enable"]').checked = false;
+      document.querySelector('input[data-l1key="functionality::cron30::enable"]').checked = false;
+      console.log('test');
     }
   });
 </script>
