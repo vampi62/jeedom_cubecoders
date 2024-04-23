@@ -8,17 +8,154 @@
 			let eqLogic = document.querySelector('.eqLogic[data-eqLogic_uid="#uid#"] .refresh');
 			eqLogic.parentNode.removeChild(eqLogic);
 		}
-		function #uid#js_cubecoders_printhtmltable(list,commande) {
-            let _table = document.querySelector('.eqLogic[data-eqLogic_uid=#uid#] tbody');
+		function #uid#buildTable(listInstance) {
+			let _table = document.querySelector('.eqLogic[data-eqLogic_uid="#uid#"] tbody');
 			_table.innerHTML = '';
-			if (list != "") {
-				line = list.split('-!-');
-				for(j = 0; line.length > j; j++) {
-					local_tr = document.createElement("tr");
-					lineelement = line[j].split('-:-');
-					_table.appendChild(local_tr);
+			for (let instance in listInstance) {
+				_row = document.createElement('tr');
+				_cell = document.createElement('td');
+				_cell.innerHTML = instance
+				_cell.style.display = 'none';
+				_row.appendChild(_cell);
+				_cell = document.createElement('td');
+				_cell.innerHTML = listInstance[instance]['fname'][1];
+				_cell.setAttribute('id_commande', listInstance[instance]['fname'][0]);
+				_row.appendChild(_cell);
+				_cell = document.createElement('td');
+				_cell.innerHTML = listInstance[instance]['module'][1];
+				_cell.setAttribute('id_commande', listInstance[instance]['module'][0]);
+				_row.appendChild(_cell);
+				_cell = document.createElement('td');
+				_cell.innerHTML = "";
+				_cell.setAttribute('value', listInstance[instance]['status'][1]);
+				_cell.setAttribute('id_commande', listInstance[instance]['status'][0]);
+				_row.appendChild(_cell);
+				_cell = document.createElement('td');
+				_cell.innerHTML = '<a class="btn start">start</a><a class="btn resume">resume</a><a class="btn pause">pause</a><a class="btn restart">restart</a><a class="btn stop">stop</a><a class="btn kill">kill</a>';
+				_cell.querySelector('.start').addEventListener('click', function () {
+					jeedom.cmd.execute({id: listInstance[instance]['start']});
+					jeedom.cmd.execute({id: '#refresh_id#', value: {message : 'true'}});
+				});
+				_cell.querySelector('.resume').addEventListener('click', function () {
+					jeedom.cmd.execute({id: listInstance[instance]['resume']});
+					jeedom.cmd.execute({id: '#refresh_id#', value: {message : 'true'}});
+				});
+				_cell.querySelector('.pause').addEventListener('click', function () {
+					jeedom.cmd.execute({id: listInstance[instance]['pause']});
+					jeedom.cmd.execute({id: '#refresh_id#', value: {message : 'true'}});
+				});
+				_cell.querySelector('.restart').addEventListener('click', function () {
+					jeedom.cmd.execute({id: listInstance[instance]['restart']});
+					jeedom.cmd.execute({id: '#refresh_id#', value: {message : 'true'}});
+				});
+				_cell.querySelector('.stop').addEventListener('click', function () {
+					jeedom.cmd.execute({id: listInstance[instance]['stop']});
+					jeedom.cmd.execute({id: '#refresh_id#', value: {message : 'true'}});
+				});
+				_cell.querySelector('.kill').addEventListener('click', function () {
+					jeedom.cmd.execute({id: listInstance[instance]['kill']});
+					jeedom.cmd.execute({id: '#refresh_id#', value: {message : 'true'}});
+				});
+				_row.appendChild(_cell);
+				_table.appendChild(_row);
+				#uid#jsUpdateCmdTable(listInstance[instance]['status'][1],_table.rows.length - 1);
+			}
+		}
+		function #uid#jsUpdateCmdTable(status,idLigne) {
+            let _table = document.querySelector('.eqLogic[data-eqLogic_uid=#uid#] tbody');
+			statusInstance = _table.rows[idLigne].cells[3].getAttribute('value');
+			switch (statusInstance) {
+				case '50':
+					_table.rows[idLigne].cells[3].innerHTML = 'Sleep';
+					_table.rows[idLigne].cells[4].querySelector('.start').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.resume').style.display = 'block';
+					_table.rows[idLigne].cells[4].querySelector('.pause').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.restart').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.stop').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.kill').style.display = 'block';
+					break;
+				case '45':
+					_table.rows[idLigne].cells[3].innerHTML = 'Prepare Sleep';
+					_table.rows[idLigne].cells[4].querySelector('.start').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.resume').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.pause').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.restart').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.stop').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.kill').style.display = 'block';
+					break;
+				case '20':
+					_table.rows[idLigne].cells[3].innerHTML = 'Run';
+					_table.rows[idLigne].cells[4].querySelector('.start').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.resume').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.pause').style.display = 'block';
+					_table.rows[idLigne].cells[4].querySelector('.restart').style.display = 'block';
+					_table.rows[idLigne].cells[4].querySelector('.stop').style.display = 'block';
+					_table.rows[idLigne].cells[4].querySelector('.kill').style.display = 'block';
+					break;
+				case '10':
+					_table.rows[idLigne].cells[3].innerHTML = 'Starting';
+					_table.rows[idLigne].cells[4].querySelector('.start').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.resume').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.pause').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.restart').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.stop').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.kill').style.display = 'block';
+					break;
+				case '40':
+					_table.rows[idLigne].cells[3].innerHTML = 'Stopping';
+					_table.rows[idLigne].cells[4].querySelector('.start').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.resume').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.pause').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.restart').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.stop').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.kill').style.display = 'block';
+					break;
+				case '0':
+					_table.rows[idLigne].cells[3].innerHTML = 'Stop';
+					_table.rows[idLigne].cells[4].querySelector('.start').style.display = 'block';
+					_table.rows[idLigne].cells[4].querySelector('.resume').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.pause').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.restart').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.stop').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.kill').style.display = 'none';
+					break;
+				case '30':
+					_table.rows[idLigne].cells[3].innerHTML = 'Restarting';
+					_table.rows[idLigne].cells[4].querySelector('.start').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.resume').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.pause').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.restart').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.stop').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.kill').style.display = 'block';
+					break;
+				case '-1':
+					_table.rows[idLigne].cells[3].innerHTML = 'Unknown';
+					_table.rows[idLigne].cells[4].querySelector('.start').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.resume').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.pause').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.restart').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.stop').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.kill').style.display = 'none';
+					break;
+				default:
+					_table.rows[idLigne].cells[3].innerHTML = 'Unknown';
+					_table.rows[idLigne].cells[4].querySelector('.start').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.resume').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.pause').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.restart').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.stop').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.kill').style.display = 'none';
+					break;
+			}
+		}
+		function #uid#foundrow(id_commande,type) {
+			let _table = document.querySelector('.eqLogic[data-eqLogic_uid=#uid#] tbody');
+			for (let i = 0; i < _table.rows.length; i++) {
+				if (_table.rows[i].cells[type].getAttribute('id_commande') == id_commande) {
+					return i;
 				}
 			}
+			return -1;
 		}
     </script> 
     <center class="widget-name">
@@ -36,7 +173,7 @@
             <table style="width: 90%;" class="table table-condensed table-bordered table-striped">
                 <thead>
                     <tr>
-						<th>ID</th>
+						<th style="display: none;">UUID</th>
                         <th>Nom</th>
                         <th>Serveur</th>
                         <th>Status</th>
@@ -46,6 +183,54 @@
                 <tbody>
                 </tbody>
             </table>
+			<div>
+				<div class="tooltips cmd cmd-widget" data-type="info" data-subtype="string" data-cmd_id="#msg_id#" data-cmd_uid="cmd#uid#" data-version="dashboard" data-template="line" data-eqlogic_id="#id#" title="Valeur du: #msg_collectDate#">
+					<div class="content-xs">
+						<span   class="cmdName">message: </span>
+						<strong class="state">#msg#</strong>
+					</div>
+					<script>
+						jeedom.cmd.addUpdateFunction('#msg_id#',function(_options) {
+							let cmd = document.querySelector('.cmd[data-cmd_id="#msg_id#"]')
+							cmd.setAttribute('title', 'Date de valeur : '+_options.valueDate+'<br/>Date de collecte : '+_options.collectDate)
+							cmd.querySelector('.state').innerHTML = _options.display_value;
+						});
+					</script>
+				</div>
+				<div class="tooltips cmd cmd-widget" data-type="info" data-subtype="string" data-cmd_id="#status_id#" data-cmd_uid="cmd#uid#" data-version="dashboard" data-template="line" data-eqlogic_id="#id#" title="Valeur du: #status_collectDate#">
+					<div class="content-xs">
+						<span   class="cmdName">status: </span>
+						<strong class="state">#status#</strong>
+					</div>
+					<script>
+						jeedom.cmd.addUpdateFunction('#status_id#',function(_options) {
+							let cmd = document.querySelector('.cmd[data-cmd_id="#status_id#"]')
+							cmd.setAttribute('title', 'Date de valeur : '+_options.valueDate+'<br/>Date de collecte : '+_options.collectDate)
+							cmd.querySelector('.state').innerHTML = _options.display_value;
+						});
+					</script>
+				</div>
+			</div>
+			<script>
+				let listInstance = #instanceList#;
+				#uid#buildTable(listInstance);
+				for (let instance in listInstance) {
+					jeedom.cmd.addUpdateFunction(listInstance[instance]['status'][0],function(_options) {
+						let idLigne = #uid#foundrow(_options.cmd_id,3);
+						let _table = document.querySelector('.eqLogic[data-eqLogic_uid=#uid#] tbody');
+						_table.rows[idLigne].cells[3].setAttribute('value', _options.display_value);
+						#uid#jsUpdateCmdTable(status,idLigne);
+					});
+					jeedom.cmd.addUpdateFunction(listInstance[instance]['fname'][0],function(_options) {
+						let _table = document.querySelector('.eqLogic[data-eqLogic_uid=#uid#] tbody');
+						_table.rows[#uid#foundrow(_options.cmd_id,1)].cells[1].innerHTML = _options.display_value;
+					});
+					jeedom.cmd.addUpdateFunction(listInstance[instance]['module'][0],function(_options) {
+						let _table = document.querySelector('.eqLogic[data-eqLogic_uid=#uid#] tbody');
+						_table.rows[#uid#foundrow(_options.cmd_id,2)].cells[2].innerHTML = _options.display_value;
+					});
+				}
+			</script>
 		</center>
 	</div>
 </div>

@@ -38,37 +38,53 @@ class cubecoders extends eqLogic {
   /*
   * Fonction exécutée automatiquement toutes les minutes par Jeedom
   */
-  public static function cron() {}
+  public static function cron() {
+    foreach (self::byType('cubecoders', true) as $cubecoders) { //parcours tous les équipements actifs du plugin
+      $cmd = $cubecoders->getCmd(null, 'refresh');
+      if (!is_object($cmd)) {
+        continue;
+      }
+      $cmd->execCmd();
+    }
+  }
   
 
   /*
   * Fonction exécutée automatiquement toutes les 5 minutes par Jeedom
   */
-  public static function cron5() {}
+  public static function cron5() {
+    foreach (self::byType('cubecoders', true) as $cubecoders) { //parcours tous les équipements actifs du plugin
+      $cmd = $cubecoders->getCmd(null, 'refresh');
+      if (!is_object($cmd)) {
+        continue;
+      }
+      $cmd->execCmd();
+    }
+  }
   
 
   /*
   * Fonction exécutée automatiquement toutes les 10 minutes par Jeedom
-  */
   public static function cron10() {}
+  */
   
 
   /*
   * Fonction exécutée automatiquement toutes les 15 minutes par Jeedom
-  */
   public static function cron15() {}
+  */
   
 
   /*
   * Fonction exécutée automatiquement toutes les 30 minutes par Jeedom
-  */
   public static function cron30() {}
+  */
   
 
   /*
   * Fonction exécutée automatiquement toutes les heures par Jeedom
-  */
   public static function cronHourly() {}
+  */
   
 
   /*
@@ -125,9 +141,9 @@ class cubecoders extends eqLogic {
 
   // Fonction exécutée automatiquement après la sauvegarde (création ou mise à jour) de l'équipement
   public function postSave() {
-    $this->createCommand('refresh','Rafraichir','action','other');
-    $this->createCommand('msg','message','info','string');
-    $this->createCommand('status','status','info','string');
+    $this->_createCommand('refresh','Rafraichir','action','other');
+    $this->_createCommand('msg','message','info','string');
+    $this->_createCommand('status','status','info','string');
   }
 
   // Fonction exécutée automatiquement avant la suppression de l'équipement
@@ -138,7 +154,7 @@ class cubecoders extends eqLogic {
   public function postRemove() {
   }
 
-  private function createCommand($newcmd,$newname,$newtype,$newsubtype,$newunit = "",$newtemplate = 'default'){
+  private function _createCommand($newcmd,$newname,$newtype,$newsubtype,$newunit = "",$newtemplate = 'default'){
     $newelement = $this->getCmd(null, $newcmd);
     if (!is_object($newelement)) {
       $newelement = new cubecodersCmd();
@@ -201,6 +217,8 @@ class cubecoders extends eqLogic {
     $result = $this->_requestAPI($protocol . '://' . $adresse . ':' . $port . '/API/ADSModule/GetInstances', 'POST', '{"token":"' . $token . '","SESSIONID":"' . $sessionId . '"}');
     log::add('cubecoders','debug',$result);
     if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
+      $this->setConfiguration("token", "");
+      $this->setConfiguration("SESSIONID", "");
       return [false,$instances];
     }
     if ((!isset($result[0])) && (isset($result[0]['AvailableInstances']))) {
@@ -216,15 +234,15 @@ class cubecoders extends eqLogic {
   }
 
   private function _addNewInstance($uuid,$instanceName,$friendlyName,$module) {
-    $this->createCommand('fname-' . $uuid,'fname-' . $instanceName,'info','string');
-    $this->createCommand('status-' . $uuid,'status-' . $instanceName,'info','string');
-    $this->createCommand('module-' . $uuid,'module-' . $instanceName,'info','string');
-    $this->createCommand('start-' . $uuid,'start-' . $instanceName,'action','other');
-    $this->createCommand('stop-' . $uuid,'stop-' . $instanceName,'action','other');
-    $this->createCommand('restart-' . $uuid,'restart-' . $instanceName,'action','other');
-    $this->createCommand('kill-' . $uuid,'kill-' . $instanceName,'action','other');
-    $this->createCommand('pause-' . $uuid,'pause-' . $instanceName,'action','other');
-    $this->createCommand('resume-' . $uuid,'resume-' . $instanceName,'action','other');
+    $this->_createCommand('fname-' . $uuid,'fname-' . $instanceName,'info','string');
+    $this->_createCommand('status-' . $uuid,'status-' . $instanceName,'info','string');
+    $this->_createCommand('module-' . $uuid,'module-' . $instanceName,'info','string');
+    $this->_createCommand('start-' . $uuid,'start-' . $instanceName,'action','other');
+    $this->_createCommand('stop-' . $uuid,'stop-' . $instanceName,'action','other');
+    $this->_createCommand('restart-' . $uuid,'restart-' . $instanceName,'action','other');
+    $this->_createCommand('kill-' . $uuid,'kill-' . $instanceName,'action','other');
+    $this->_createCommand('pause-' . $uuid,'pause-' . $instanceName,'action','other');
+    $this->_createCommand('resume-' . $uuid,'resume-' . $instanceName,'action','other');
     $this->checkAndUpdateCmd('module-' . $uuid, $module);
     $this->checkAndUpdateCmd('fname-' . $uuid, $friendlyName);
     log::add('cubecoders','debug','addNewInstance');
@@ -254,7 +272,7 @@ class cubecoders extends eqLogic {
     return $uuids;
   }
 
-  public function refreshInstanceList() {
+  public function refreshInstanceList($isRefresh = true) {
     $token = $this->getConfiguration("token", "");
     $sessionId = $this->getConfiguration("SESSIONID", "");
     $retry = 0;
@@ -263,7 +281,7 @@ class cubecoders extends eqLogic {
         if (!$this->_Login()) {
           return false;
         }
-        sleep(0.3);
+        sleep(0.2);
         $token = $this->getConfiguration("token", "");
         $sessionId = $this->getConfiguration("SESSIONID", "");
       }
@@ -273,8 +291,7 @@ class cubecoders extends eqLogic {
     if (!$instances[0]) {
       $this->setConfiguration("token", "");
       $this->setConfiguration("SESSIONID", "");
-      $this->checkAndUpdateCmd('msg', 'Impossible de se connecter au serveur');
-      $this->checkAndUpdateCmd('status', 'NOK');
+      $this->_setMsg('Impossible de se connecter au serveur', 'NOK');
       $this->save();
       return;
     }
@@ -301,8 +318,9 @@ class cubecoders extends eqLogic {
     0 --> stop
     30 --> restarting
     -1 --> unknown */
-    $this->checkAndUpdateCmd('msg', '');
-    $this->checkAndUpdateCmd('status', 'OK');
+    if ($isRefresh) {
+      $this->_setMsg('', 'OK');
+    }
   }
 
   private function _LoginInstance($uuid) {
@@ -313,8 +331,6 @@ class cubecoders extends eqLogic {
     $password = $this->getConfiguration("password", "admin");
     $_url = $protocol . '://' . $adresse . ':' . $port . '/API/ADSModule/Servers/' . $uuid;
     $result = $this->_requestAPI($_url . '/API/Core/Login', 'POST', '{"username":"' . $utilisateur . '","password":"' . $password . '", "rememberMe":true, "token":""}');
-    log::add('cubecoders','debug','test in instance');
-    log::add('cubecoders','debug',$result['success']);
     if (!$result['success']) {
       return [false,'','',''];
     }
@@ -322,21 +338,26 @@ class cubecoders extends eqLogic {
     return [true,$result['rememberMeToken'],$result['sessionID'],$_url];
   }
 
+  private function _LogoutInstance($instanceSession) {
+    $result = $this->_requestAPI($instanceSession[3] . '/API/Core/Logout', 'POST', '{"token":"' . $instanceSession[1] . '","SESSIONID":"' . $instanceSession[2] . '"}');
+  }
+
   public function startInstance($uuid) {
     $instanceSession = $this->_LoginInstance($uuid);
     if (!$instanceSession[0]) {
-      $this->checkAndUpdateCmd('msg', 'Impossible de se connecter à l\'instance');
-      $this->checkAndUpdateCmd('status', 'NOK');
+      $this->_setMsg('Impossible de se connecter à l\'instance', 'NOK');
       return;
     }
+    sleep(0.2);
     $result = $this->_requestAPI($instanceSession[3] . '/API/Core/Start', 'POST', '{"token":"' . $instanceSession[1] . '","SESSIONID":"' . $instanceSession[2] . '"}');
+    $this->_LogoutInstance($instanceSession);
     log::add('cubecoders','debug',$result);
     if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
-      $this->checkAndUpdateCmd('msg', 'Impossible de démarrer l\'instance');
-      $this->checkAndUpdateCmd('status', 'NOK');
+      $this->_setMsg('Impossible de démarrer l\'instance', 'NOK');
     }
     // no body if success
-    if (empty($result)) {
+    if (isset($result['Status']) && $result['Status']) {
+      $this->_setMsg('Démarrage en cours', 'OK');
       return;
     }
   }
@@ -344,17 +365,18 @@ class cubecoders extends eqLogic {
   public function stopInstance($uuid) {
     $instanceSession = $this->_LoginInstance($uuid);
     if (!$instanceSession[0]) {
-      $this->checkAndUpdateCmd('msg', 'Impossible de se connecter à l\'instance');
-      $this->checkAndUpdateCmd('status', 'NOK');
+      $this->_setMsg('Impossible de se connecter à l\'instance', 'NOK');
       return;
     }
+    sleep(0.2);
     $result = $this->_requestAPI($instanceSession[3] . '/API/Core/Stop', 'POST', '{"token":"' . $instanceSession[1] . '","SESSIONID":"' . $instanceSession[2] . '"}');
+    $this->_LogoutInstance($instanceSession);
     if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
-      $this->checkAndUpdateCmd('msg', 'Impossible d\'arrêter l\'instance');
-      $this->checkAndUpdateCmd('status', 'NOK');
+      $this->_setMsg('Impossible d\'arrêter l\'instance', 'NOK');
     }
     // no body if success
-    if (empty($result)) {
+    if (isset($result['Status']) && $result['Status']) {
+      $this->_setMsg('Arrêt en cours', 'OK');
       return;
     }
   }
@@ -362,17 +384,18 @@ class cubecoders extends eqLogic {
   public function restartInstance($uuid) {
     $instanceSession = $this->_LoginInstance($uuid);
     if (!$instanceSession[0]) {
-      $this->checkAndUpdateCmd('msg', 'Impossible de se connecter à l\'instance');
-      $this->checkAndUpdateCmd('status', 'NOK');
+      $this->_setMsg('Impossible de se connecter à l\'instance', 'NOK');
       return;
     }
+    sleep(0.2);
     $result = $this->_requestAPI($instanceSession[3] . '/API/Core/Restart', 'POST', '{"token":"' . $instanceSession[1] . '","SESSIONID":"' . $instanceSession[2] . '"}');
+    $this->_LogoutInstance($instanceSession);
     if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
-      $this->checkAndUpdateCmd('msg', 'Impossible de redémarrer l\'instance');
-      $this->checkAndUpdateCmd('status', 'NOK');
+      $this->_setMsg('Impossible de redémarrer l\'instance', 'NOK');
     }
     // no body if success
-    if (empty($result)) {
+    if (isset($result['Status']) && $result['Status']) {
+      $this->_setMsg('Redémarrage en cours', 'OK');
       return;
     }
   }
@@ -380,17 +403,18 @@ class cubecoders extends eqLogic {
   public function killInstance($uuid) {
     $instanceSession = $this->_LoginInstance($uuid);
     if (!$instanceSession[0]) {
-      $this->checkAndUpdateCmd('msg', 'Impossible de se connecter à l\'instance');
-      $this->checkAndUpdateCmd('status', 'NOK');
+      $this->_setMsg('Impossible de se connecter à l\'instance', 'NOK');
       return;
     }
+    sleep(0.2);
     $result = $this->_requestAPI($instanceSession[3] . '/API/Core/Kill', 'POST', '{"token":"' . $instanceSession[1] . '","SESSIONID":"' . $instanceSession[2] . '"}');
+    $this->_LogoutInstance($instanceSession);
     if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
-      $this->checkAndUpdateCmd('msg', 'Impossible de tuer l\'instance');
-      $this->checkAndUpdateCmd('status', 'NOK');
+      $this->_setMsg('Impossible de tuer l\'instance', 'NOK');
     }
     // no body if success
-    if (empty($result)) {
+    if (isset($result['Status']) && $result['Status']) {
+      $this->_setMsg('Instance en cours d\'arrêt forcé', 'OK');
       return;
     }
   }
@@ -398,17 +422,18 @@ class cubecoders extends eqLogic {
   public function pauseInstance($uuid) {
     $instanceSession = $this->_LoginInstance($uuid);
     if (!$instanceSession[0]) {
-      $this->checkAndUpdateCmd('msg', 'Impossible de se connecter à l\'instance');
-      $this->checkAndUpdateCmd('status', 'NOK');
+      $this->_setMsg('Impossible de se connecter à l\'instance', 'NOK');
       return;
     }
+    sleep(0.2);
     $result = $this->_requestAPI($instanceSession[3] . '/API/Core/Pause', 'POST', '{"token":"' . $instanceSession[1] . '","SESSIONID":"' . $instanceSession[2] . '"}');
+    $this->_LogoutInstance($instanceSession);
     if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
-      $this->checkAndUpdateCmd('msg', 'Impossible de mettre en pause l\'instance');
-      $this->checkAndUpdateCmd('status', 'NOK');
+      $this->_setMsg('Impossible de mettre en pause l\'instance', 'NOK');
     }
     // no body if success
-    if (empty($result)) {
+    if (isset($result['Status']) && $result['Status']) {
+      $this->_setMsg('mise en pause en cours', 'OK');
       return;
     }
   }
@@ -416,21 +441,38 @@ class cubecoders extends eqLogic {
   public function resumeInstance($uuid) {
     $instanceSession = $this->_LoginInstance($uuid);
     if (!$instanceSession[0]) {
-      $this->checkAndUpdateCmd('msg', 'Impossible de se connecter à l\'instance');
-      $this->checkAndUpdateCmd('status', 'NOK');
+      $this->_setMsg('Impossible de se connecter à l\'instance', 'NOK');
       return;
     }
+    sleep(0.2);
     $result = $this->_requestAPI($instanceSession[3] . '/API/Core/Resume', 'POST', '{"token":"' . $instanceSession[1] . '","SESSIONID":"' . $instanceSession[2] . '"}');
+    $this->_LogoutInstance($instanceSession);
     if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
-      $this->checkAndUpdateCmd('msg', 'Impossible de reprendre l\'instance');
-      $this->checkAndUpdateCmd('status', 'NOK');
+      $this->_setMsg('Impossible de reprendre l\'instance', 'NOK');
     }
     // no body if success
-    if (empty($result)) {
+    if (isset($result['Status']) && $result['Status']) {
+      $this->_setMsg('reprise en cours','OK');
       return;
     }
   }
 
+  private function _setMsg($msg,$status) {
+    log::add('cubecoders','debug',$msg);
+    log::add('cubecoders','debug',$status);
+    $msgCommand = $this->getCmd(null, 'msg');
+    if (is_object($msgCommand)) {
+      $msgCommand->setCollectDate(date('Y-m-d H:i:s'));
+      $msgCommand->setConfiguration('value', $msg);
+      $msgCommand->save();
+    }
+    $statusCommand = $this->getCmd(null, 'status');
+    if (is_object($statusCommand)) {
+      $statusCommand->setCollectDate(date('Y-m-d H:i:s'));
+      $statusCommand->setConfiguration('value', $status);
+      $statusCommand->save();
+    }
+  }
 
   private function _requestAPI($url, $method = 'GET', $data = null) {
     $request_http = new com_http($url);
@@ -452,7 +494,6 @@ class cubecoders extends eqLogic {
       return $replace;
     }
     $version = jeedom::versionAlias($_version);
-    $replace['#tableInstance#'] = "";
     foreach ($this->getCmd('info') as $cmd) {
       if (!is_object($cmd)) {
         continue;
@@ -467,7 +508,35 @@ class cubecoders extends eqLogic {
       if ($cmd->getIsHistorized() == 1) {
         $replace['#' . $cmd->getLogicalId() . '_history#'] = 'history cursor';
       }
+      if (strpos($cmd->getLogicalId(),'status-') !== false) {
+        $instances[str_replace('status-','',$cmd->getLogicalId())]['status'] = array($cmd->getId(),$cmd->execCmd());
+      } elseif (strpos($cmd->getLogicalId(),'fname-') !== false) {
+        $instances[str_replace('fname-','',$cmd->getLogicalId())]['fname'] = array($cmd->getId(),$cmd->execCmd());
+      } elseif (strpos($cmd->getLogicalId(),'module-') !== false) {
+        $instances[str_replace('module-','',$cmd->getLogicalId())]['module'] = array($cmd->getId(),$cmd->execCmd());
+      }
     }
+
+    foreach ($this->getCmd('action') as $cmd) {
+      if (!is_object($cmd)) {
+        continue;
+      }
+      $replace['#' . $cmd->getLogicalId() . '_id#'] = $cmd->getId();
+      if (strpos($cmd->getLogicalId(),'restart-') !== false) {
+        $instances[str_replace('restart-','',$cmd->getLogicalId())]['restart'] = $cmd->getId();
+      } elseif (strpos($cmd->getLogicalId(),'start-') !== false) {
+        $instances[str_replace('start-','',$cmd->getLogicalId())]['start'] = $cmd->getId();
+      } elseif (strpos($cmd->getLogicalId(),'resume-') !== false) {
+        $instances[str_replace('resume-','',$cmd->getLogicalId())]['resume'] = $cmd->getId();
+      } elseif (strpos($cmd->getLogicalId(),'pause-') !== false) {
+        $instances[str_replace('pause-','',$cmd->getLogicalId())]['pause'] = $cmd->getId();
+      } elseif (strpos($cmd->getLogicalId(),'stop-') !== false) {
+        $instances[str_replace('stop-','',$cmd->getLogicalId())]['stop'] = $cmd->getId();
+      } elseif (strpos($cmd->getLogicalId(),'kill-') !== false) {
+        $instances[str_replace('kill-','',$cmd->getLogicalId())]['kill'] = $cmd->getId();
+      }
+    }
+    $replace['#instanceList#'] = json_encode($instances);
     $parameters = $this->getDisplay('parameters');
     if (is_array($parameters)) {
       foreach ($parameters as $key => $value) {
@@ -504,21 +573,21 @@ class cubecodersCmd extends cmd {
     log::add('cubecoders','debug',$this->getLogicalId());
     switch ($this->getLogicalId()) {
       case 'refresh':
-        $eqlogic->refreshInstanceList();
+        $eqlogic->refreshInstanceList(!($_options['message'] == 'true'));
       break;
       default:
-        if (strpos($this->getLogicalId(),'start-') !== false) {
+        if (strpos($this->getLogicalId(),'restart-') !== false) {
+          $eqlogic->restartInstance(str_replace('restart-','',$this->getLogicalId()));
+        } elseif (strpos($this->getLogicalId(),'start-') !== false) {
           $eqlogic->startInstance(str_replace('start-','',$this->getLogicalId()));
         } elseif (strpos($this->getLogicalId(),'stop-') !== false) {
-          $eqlogic->startInstance(str_replace('stop-','',$this->getLogicalId()));
-        } elseif (strpos($this->getLogicalId(),'restart-') !== false) {
-          $eqlogic->startInstance(str_replace('restart-','',$this->getLogicalId()));
+          $eqlogic->stopInstance(str_replace('stop-','',$this->getLogicalId()));
         } elseif (strpos($this->getLogicalId(),'kill-') !== false) {
-          $eqlogic->startInstance(str_replace('kill-','',$this->getLogicalId()));
+          $eqlogic->killInstance(str_replace('kill-','',$this->getLogicalId()));
         } elseif (strpos($this->getLogicalId(),'pause-') !== false) {
-          $eqlogic->startInstance(str_replace('pause-','',$this->getLogicalId()));
+          $eqlogic->pauseInstance(str_replace('pause-','',$this->getLogicalId()));
         } elseif (strpos($this->getLogicalId(),'resume-') !== false) {
-          $eqlogic->startInstance(str_replace('resume-','',$this->getLogicalId()));
+          $eqlogic->resumeInstance(str_replace('resume-','',$this->getLogicalId()));
         } else {
           log::add('cubecoders','debug','Commande inconnue');
           log::add('cubecoders','debug',$this->getLogicalId());
