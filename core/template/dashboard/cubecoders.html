@@ -212,20 +212,20 @@
 				</div>
 			</div>
 			<script>
-				let listInstance = #instanceList#;
-				#uid#buildTable(listInstance);
-				for (let instance in listInstance) {
-					jeedom.cmd.addUpdateFunction(listInstance[instance]['status'][0],function(_options) {
+				let #uid#listInstance = #instanceList#;
+				#uid#buildTable(#uid#listInstance);
+				for (let instance in #uid#listInstance) {
+					jeedom.cmd.addUpdateFunction(#uid#listInstance[instance]['status'][0],function(_options) {
 						let idLigne = #uid#foundrow(_options.cmd_id,3);
 						let _table = document.querySelector('.eqLogic[data-eqLogic_uid=#uid#] tbody');
 						_table.rows[idLigne].cells[3].setAttribute('value', _options.display_value);
 						#uid#jsUpdateCmdTable(status,idLigne);
 					});
-					jeedom.cmd.addUpdateFunction(listInstance[instance]['fname'][0],function(_options) {
+					jeedom.cmd.addUpdateFunction(#uid#listInstance[instance]['fname'][0],function(_options) {
 						let _table = document.querySelector('.eqLogic[data-eqLogic_uid=#uid#] tbody');
 						_table.rows[#uid#foundrow(_options.cmd_id,1)].cells[1].innerHTML = _options.display_value;
 					});
-					jeedom.cmd.addUpdateFunction(listInstance[instance]['module'][0],function(_options) {
+					jeedom.cmd.addUpdateFunction(#uid#listInstance[instance]['module'][0],function(_options) {
 						let _table = document.querySelector('.eqLogic[data-eqLogic_uid=#uid#] tbody');
 						_table.rows[#uid#foundrow(_options.cmd_id,2)].cells[2].innerHTML = _options.display_value;
 					});
