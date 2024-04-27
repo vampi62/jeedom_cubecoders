@@ -31,17 +31,9 @@
 				_cell.setAttribute('id_commande', listInstance[instance]['status'][0]);
 				_row.appendChild(_cell);
 				_cell = document.createElement('td');
-				_cell.innerHTML = '<a class="btn start">start</a><a class="btn resume">resume</a><a class="btn pause">pause</a><a class="btn restart">restart</a><a class="btn stop">stop</a><a class="btn kill">kill</a>';
+				_cell.innerHTML = '<a class="btn start">start</a><a class="btn restart">restart</a><a class="btn stop">stop</a><a class="btn kill">kill</a>';
 				_cell.querySelector('.start').addEventListener('click', function () {
 					jeedom.cmd.execute({id: listInstance[instance]['start']});
-					jeedom.cmd.execute({id: '#refresh_id#', value: {message : 'true'}});
-				});
-				_cell.querySelector('.resume').addEventListener('click', function () {
-					jeedom.cmd.execute({id: listInstance[instance]['resume']});
-					jeedom.cmd.execute({id: '#refresh_id#', value: {message : 'true'}});
-				});
-				_cell.querySelector('.pause').addEventListener('click', function () {
-					jeedom.cmd.execute({id: listInstance[instance]['pause']});
 					jeedom.cmd.execute({id: '#refresh_id#', value: {message : 'true'}});
 				});
 				_cell.querySelector('.restart').addEventListener('click', function () {
@@ -67,9 +59,7 @@
 			switch (statusInstance) {
 				case '50':
 					_table.rows[idLigne].cells[3].innerHTML = 'Sleep';
-					_table.rows[idLigne].cells[4].querySelector('.start').style.display = 'none';
-					_table.rows[idLigne].cells[4].querySelector('.resume').style.display = 'block';
-					_table.rows[idLigne].cells[4].querySelector('.pause').style.display = 'none';
+					_table.rows[idLigne].cells[4].querySelector('.start').style.display = 'block';
 					_table.rows[idLigne].cells[4].querySelector('.restart').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.stop').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.kill').style.display = 'block';
@@ -77,8 +67,6 @@
 				case '45':
 					_table.rows[idLigne].cells[3].innerHTML = 'Prepare Sleep';
 					_table.rows[idLigne].cells[4].querySelector('.start').style.display = 'none';
-					_table.rows[idLigne].cells[4].querySelector('.resume').style.display = 'none';
-					_table.rows[idLigne].cells[4].querySelector('.pause').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.restart').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.stop').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.kill').style.display = 'block';
@@ -86,8 +74,6 @@
 				case '20':
 					_table.rows[idLigne].cells[3].innerHTML = 'Run';
 					_table.rows[idLigne].cells[4].querySelector('.start').style.display = 'none';
-					_table.rows[idLigne].cells[4].querySelector('.resume').style.display = 'none';
-					_table.rows[idLigne].cells[4].querySelector('.pause').style.display = 'block';
 					_table.rows[idLigne].cells[4].querySelector('.restart').style.display = 'block';
 					_table.rows[idLigne].cells[4].querySelector('.stop').style.display = 'block';
 					_table.rows[idLigne].cells[4].querySelector('.kill').style.display = 'block';
@@ -95,8 +81,6 @@
 				case '10':
 					_table.rows[idLigne].cells[3].innerHTML = 'Starting';
 					_table.rows[idLigne].cells[4].querySelector('.start').style.display = 'none';
-					_table.rows[idLigne].cells[4].querySelector('.resume').style.display = 'none';
-					_table.rows[idLigne].cells[4].querySelector('.pause').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.restart').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.stop').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.kill').style.display = 'block';
@@ -113,8 +97,6 @@
 				case '0':
 					_table.rows[idLigne].cells[3].innerHTML = 'Stop';
 					_table.rows[idLigne].cells[4].querySelector('.start').style.display = 'block';
-					_table.rows[idLigne].cells[4].querySelector('.resume').style.display = 'none';
-					_table.rows[idLigne].cells[4].querySelector('.pause').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.restart').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.stop').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.kill').style.display = 'none';
@@ -122,8 +104,6 @@
 				case '30':
 					_table.rows[idLigne].cells[3].innerHTML = 'Restarting';
 					_table.rows[idLigne].cells[4].querySelector('.start').style.display = 'none';
-					_table.rows[idLigne].cells[4].querySelector('.resume').style.display = 'none';
-					_table.rows[idLigne].cells[4].querySelector('.pause').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.restart').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.stop').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.kill').style.display = 'block';
@@ -131,8 +111,6 @@
 				case '-1':
 					_table.rows[idLigne].cells[3].innerHTML = 'Unknown';
 					_table.rows[idLigne].cells[4].querySelector('.start').style.display = 'none';
-					_table.rows[idLigne].cells[4].querySelector('.resume').style.display = 'none';
-					_table.rows[idLigne].cells[4].querySelector('.pause').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.restart').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.stop').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.kill').style.display = 'none';
@@ -140,8 +118,6 @@
 				default:
 					_table.rows[idLigne].cells[3].innerHTML = 'Unknown';
 					_table.rows[idLigne].cells[4].querySelector('.start').style.display = 'none';
-					_table.rows[idLigne].cells[4].querySelector('.resume').style.display = 'none';
-					_table.rows[idLigne].cells[4].querySelector('.pause').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.restart').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.stop').style.display = 'none';
 					_table.rows[idLigne].cells[4].querySelector('.kill').style.display = 'none';
@@ -212,20 +188,20 @@
 				</div>
 			</div>
 			<script>
-				let listInstance = #instanceList#;
-				#uid#buildTable(listInstance);
-				for (let instance in listInstance) {
-					jeedom.cmd.addUpdateFunction(listInstance[instance]['status'][0],function(_options) {
+				let #uid#listInstance = #instanceList#;
+				#uid#buildTable(#uid#listInstance);
+				for (let instance in #uid#listInstance) {
+					jeedom.cmd.addUpdateFunction(#uid#listInstance[instance]['status'][0],function(_options) {
 						let idLigne = #uid#foundrow(_options.cmd_id,3);
 						let _table = document.querySelector('.eqLogic[data-eqLogic_uid=#uid#] tbody');
 						_table.rows[idLigne].cells[3].setAttribute('value', _options.display_value);
 						#uid#jsUpdateCmdTable(status,idLigne);
 					});
-					jeedom.cmd.addUpdateFunction(listInstance[instance]['fname'][0],function(_options) {
+					jeedom.cmd.addUpdateFunction(#uid#listInstance[instance]['fname'][0],function(_options) {
 						let _table = document.querySelector('.eqLogic[data-eqLogic_uid=#uid#] tbody');
 						_table.rows[#uid#foundrow(_options.cmd_id,1)].cells[1].innerHTML = _options.display_value;
 					});
-					jeedom.cmd.addUpdateFunction(listInstance[instance]['module'][0],function(_options) {
+					jeedom.cmd.addUpdateFunction(#uid#listInstance[instance]['module'][0],function(_options) {
 						let _table = document.querySelector('.eqLogic[data-eqLogic_uid=#uid#] tbody');
 						_table.rows[#uid#foundrow(_options.cmd_id,2)].cells[2].innerHTML = _options.display_value;
 					});

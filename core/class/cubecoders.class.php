@@ -460,16 +460,18 @@ class cubecoders extends eqLogic {
   private function _setMsg($msg,$status) {
     log::add('cubecoders','debug',$msg);
     log::add('cubecoders','debug',$status);
+    $this->checkAndUpdateCmd('msg', $msg);
+    $this->checkAndUpdateCmd('status', $status);
     $msgCommand = $this->getCmd(null, 'msg');
     if (is_object($msgCommand)) {
       $msgCommand->setCollectDate(date('Y-m-d H:i:s'));
-      $msgCommand->setConfiguration('value', $msg);
+      $msgCommand->setValue($msg);
       $msgCommand->save();
     }
     $statusCommand = $this->getCmd(null, 'status');
     if (is_object($statusCommand)) {
       $statusCommand->setCollectDate(date('Y-m-d H:i:s'));
-      $statusCommand->setConfiguration('value', $status);
+      $statusCommand->setValue($status);
       $statusCommand->save();
     }
   }
