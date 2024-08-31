@@ -6,6 +6,18 @@ if (!isConnect('admin')) {
 $plugin = plugin::byId('cubecoders');
 sendVarToJS('eqType', $plugin->getId());
 $eqLogics = eqLogic::byType($plugin->getId());
+$has = ["server"=>false,"instance"=>false];
+
+foreach ($eqLogics as $eqLogic) {
+    if ($eqLogic->getConfiguration('type') == '') {
+        $eqLogic->setConfiguration('type', 'server');
+        $eqLogic->save();
+    }
+    $type=$eqLogic->getConfiguration('type','');
+    if($type) {
+        $has[$type]=true;
+    }
+}
 ?>
 
 <div class="row row-overflow">
@@ -24,37 +36,73 @@ $eqLogics = eqLogic::byType($plugin->getId());
 				<br>
 				<span>{{Configuration}}</span>
 			</div>
+            <div class="cursor eqLogicAction logoPrimary" data-action="discover" data-action2="instances" title="{{Scanner les instances}}">
+                <i class="fas fa-bullseye"></i>
+                <br>
+                <span>{{Scanner}}</span>
+            </div>
 		</div>
-		<legend><i class="fas fa-table"></i> {{Mes équipements}}</legend>
-		<?php
-		if (count($eqLogics) == 0) {
-			echo '<br><div class="text-center" style="font-size:1.2em;font-weight:bold;">{{Aucun équipement Template trouvé, cliquer sur "Ajouter" pour commencer}}</div>';
-		} else {
-			// Champ de recherche
-			echo '<div class="input-group" style="margin:5px;">';
-			echo '<input class="form-control roundedLeft" placeholder="{{Rechercher}}" id="in_searchEqlogic">';
-			echo '<div class="input-group-btn">';
-			echo '<a id="bt_resetSearch" class="btn" style="width:30px"><i class="fas fa-times"></i></a>';
-			echo '<a class="btn roundedRight hidden" id="bt_pluginDisplayAsTable" data-coreSupport="1" data-state="0"><i class="fas fa-grip-lines"></i></a>';
-			echo '</div>';
-			echo '</div>';
-			// Liste des équipements du plugin
-			echo '<div class="eqLogicThumbnailContainer">';
-			foreach ($eqLogics as $eqLogic) {
-				$opacity = ($eqLogic->getIsEnable()) ? '' : 'disableCard';
-				echo '<div class="eqLogicDisplayCard cursor '.$opacity.'" data-eqLogic_id="' . $eqLogic->getId() . '">';
-				echo '<img src="' . $eqLogic->getImage() . '"/>';
-				echo '<br>';
-				echo '<span class="name">' . $eqLogic->getHumanName(true, true) . '</span>';
-				echo '<span class="hiddenAsCard displayTableRight hidden">';
-				echo ($eqLogic->getIsVisible() == 1) ? '<i class="fas fa-eye" title="{{Equipement visible}}"></i>' : '<i class="fas fa-eye-slash" title="{{Equipement non visible}}"></i>';
-				echo '</span>';
-				echo '</div>';
-			}
-			echo '</div>';
-		}
-		?>
-	</div> <!-- /.eqLogicThumbnailDisplay -->
+        <legend><i class="fas fa-table"></i>{{Mes Serveur Cubecoders}}</legend>
+        <div class="panel">
+            <div class="panel-body">
+                <div class="eqLogicThumbnailContainer ">
+					<?php
+					if($has['server']) {
+						foreach ($eqLogics as $eqLogic) {
+							if($eqLogic->getConfiguration('type','') != 'server') {
+								continue;
+							}
+							$opacity = ($eqLogic->getIsEnable()) ? '' : 'disableCard';
+							echo '<div class="eqLogicDisplayCard cursor '.$opacity.'" data-eqLogic_id="' . $eqLogic->getId() . '">';
+							echo '<img src="' . $eqLogic->getImage() . '"/>';
+							echo '<br>';
+							echo '<span class="name">' . $eqLogic->getHumanName(true, true) . '</span>';
+							echo '</div>';
+						}
+					} else {
+						echo "<br/><br/><br/><center><span style='color:#767676;font-size:1.2em;font-weight: bold;'>{{Vous n'avez pas encore de compte Github, cliquez sur Ajouter un équipement pour commencer}}</span></center>";
+					}
+					?>
+                </div>
+            </div>
+        </div>
+        <legend><i class="fas fa-table"></i>{{Mes Instances}}</legend>
+        <div class="input-group" style="margin-bottom:5px;">
+            <input class="form-control roundedLeft" placeholder="{{Rechercher}}" id="in_searchEqlogic2" />
+            <div class="input-group-btn">
+                <a id="bt_resetEqlogicSearch2" class="btn roundedRight" style="width:30px"><i class="fas fa-times"></i></a>
+            </div>
+        </div>
+        <div class="panel">
+            <div class="panel-body">
+                <div class="eqLogicThumbnailContainer  second">
+                    <?php
+                    if($has['instance']) {
+                        foreach ($eqLogics as $eqLogic) {
+                            if($eqLogic->getConfiguration('type','') != 'instance') {
+                                continue;
+                            }
+                            $opacity = '';
+                            if ($eqLogic->getIsEnable() != 1) {
+                                $opacity = ' disableCard';
+                            }
+
+                            echo '<div class="eqLogicDisplayCard cursor  second '.$opacity.'" data-eqLogic_id="' . $eqLogic->getId() . '">';
+                            echo '<img src="' . $eqLogic->getImage() . '"/>';
+                            echo '<br>';
+                            echo '<span class="name">' . $eqLogic->getHumanName(true, true) . '</span>';
+                            echo '</div>';
+                        }
+                    } else {
+                        echo "<br/><br/><br/><center><span style='color:#767676;font-size:1.2em;font-weight: bold;'>{{Scannez les instances pour les créer}}</span></center>";
+                    }
+                    ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 
 	<!-- Page de présentation de l'équipement -->
 	<div class="col-xs-12 eqLogic" style="display: none;">
@@ -63,7 +111,6 @@ $eqLogics = eqLogic::byType($plugin->getId());
 			<span class="input-group-btn">
 				<!-- Les balises <a></a> sont volontairement fermées à la ligne suivante pour éviter les espaces entre les boutons. Ne pas modifier -->
 				<a class="btn btn-sm btn-default eqLogicAction roundedLeft" data-action="configure"><i class="fas fa-cogs"></i><span class="hidden-xs"> {{Configuration avancée}}</span>
-				</a><a class="btn btn-sm btn-default eqLogicAction" data-action="copy"><i class="fas fa-copy"></i><span class="hidden-xs">  {{Dupliquer}}</span>
 				</a><a class="btn btn-sm btn-success eqLogicAction" data-action="save"><i class="fas fa-check-circle"></i> {{Sauvegarder}}
 				</a><a class="btn btn-sm btn-danger eqLogicAction roundedRight" data-action="remove"><i class="fas fa-minus-circle"></i> {{Supprimer}}
 				</a>
@@ -127,41 +174,41 @@ $eqLogics = eqLogic::byType($plugin->getId());
 							</div>
 
 							<legend><i class="fas fa-cogs"></i> {{Paramètres spécifiques}}</legend>
-							<div class="form-group">
+							<div class="form-group forserverinput">
 								<label class="col-sm-4 control-label">{{ip du serveur}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Renseignez l'ip ou le nom de domaine du serveur mcmyadmin}}"></i></sup>
+									<sup><i class="fas fa-question-circle tooltips" title="{{Renseignez l'ip ou le nom de domaine du serveur cubecoders}}"></i></sup>
 								</label>
 								<div class="col-sm-6">
 									<input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="adresse">
 								</div>
 							</div>
-							<div class="form-group">
+							<div class="form-group forserverinput">
 								<label class="col-sm-4 control-label">{{port du serveur}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Renseignez le port du serveur de mcmyadmin}}"></i></sup>
+									<sup><i class="fas fa-question-circle tooltips" title="{{Renseignez le port du serveur cubecoders}}"></i></sup>
 								</label>
 								<div class="col-sm-6">
 									<input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="port">
 								</div>
 							</div>
-							<div class="form-group">
+							<div class="form-group forserverinput">
 								<label class="col-sm-4 control-label">{{nom d'utilisateur}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Renseignez le pseudo d'un compte administrateur de mcmyadmin}}"></i></sup>
+									<sup><i class="fas fa-question-circle tooltips" title="{{Renseignez le pseudo d'un compte administrateur sur le serveur cubecoders}}"></i></sup>
 								</label>
 								<div class="col-sm-6">
 									<input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="utilisateur">
 								</div>
 							</div>
-							<div class="form-group">
+							<div class="form-group forserverinput">
 								<label class="col-sm-4 control-label"> {{Mot de passe}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Renseignez le mot de passe}}"></i></sup>
+									<sup><i class="fas fa-question-circle tooltips" title="{{Renseignez le mot de passe du compte administrateur}}"></i></sup>
 								</label>
 								<div class="col-sm-6">
 									<input type="text" class="eqLogicAttr form-control inputPassword" data-l1key="configuration" data-l2key="password">
 								</div>
 							</div>
-							<div class="form-group">
+							<div class="form-group forserverinput">
 								<label class="col-sm-4 control-label"> {{protocole}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{ entrer le protocole utiliser : http ou https}}"></i></sup>
+									<sup><i class="fas fa-question-circle tooltips" title="{{entrer le protocole utiliser : http ou https}}"></i></sup>
 								</label>
 								<div class="col-sm-6">
 									<select id="protocol" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="protocol">

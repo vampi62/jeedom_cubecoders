@@ -31,7 +31,7 @@
 				_cell.setAttribute('id_commande', listInstance[instance]['status'][0]);
 				_row.appendChild(_cell);
 				_cell = document.createElement('td');
-				_cell.innerHTML = '<a class="btn start">start</a><a class="btn restart">restart</a><a class="btn stop">stop</a><a class="btn kill">kill</a>';
+				_cell.innerHTML = '<a class="btn start">{{démarrer}}</a><a class="btn restart">{{redémarrer}}</a><a class="btn stop">{{arrêter}}</a><a class="btn kill">{{tuer}}</a>';
 				_cell.querySelector('.start').addEventListener('click', function () {
 					jeedom.cmd.execute({id: listInstance[instance]['start']});
 					jeedom.cmd.execute({id: '#refresh_id#', value: {message : 'true'}});
@@ -150,9 +150,9 @@
                 <thead>
                     <tr>
 						<th style="display: none;">UUID</th>
-                        <th>Nom</th>
-                        <th>Serveur</th>
-                        <th>Status</th>
+                        <th>{{Nom}}</th>
+                        <th>{{Serveur}}</th>
+                        <th>{{Status}}</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -162,7 +162,7 @@
 			<div>
 				<div class="tooltips cmd cmd-widget" data-type="info" data-subtype="string" data-cmd_id="#msg_id#" data-cmd_uid="cmd#uid#" data-version="dashboard" data-template="line" data-eqlogic_id="#id#" title="Valeur du: #msg_collectDate#">
 					<div class="content-xs">
-						<span   class="cmdName">message: </span>
+						<span   class="cmdName">{{message:}} </span>
 						<strong class="state">#msg#</strong>
 					</div>
 					<script>
@@ -175,7 +175,7 @@
 				</div>
 				<div class="tooltips cmd cmd-widget" data-type="info" data-subtype="string" data-cmd_id="#status_id#" data-cmd_uid="cmd#uid#" data-version="dashboard" data-template="line" data-eqlogic_id="#id#" title="Valeur du: #status_collectDate#">
 					<div class="content-xs">
-						<span   class="cmdName">status: </span>
+						<span   class="cmdName">{{status:}} </span>
 						<strong class="state">#status#</strong>
 					</div>
 					<script>

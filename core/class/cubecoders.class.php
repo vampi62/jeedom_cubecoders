@@ -345,7 +345,7 @@ class cubecoders extends eqLogic {
   public function startInstance($uuid) {
     $instanceSession = $this->_LoginInstance($uuid);
     if (!$instanceSession[0]) {
-      $this->_setMsg('Impossible de se connecter à l\'instance', 'NOK');
+      $this->_setMsg('{{Impossible de se connecter à l\'instance}}', 'NOK');
       return;
     }
     sleep(0.2);
@@ -353,11 +353,11 @@ class cubecoders extends eqLogic {
     $this->_LogoutInstance($instanceSession);
     log::add('cubecoders','debug',$result);
     if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
-      $this->_setMsg('Impossible de démarrer l\'instance', 'NOK');
+      $this->_setMsg('{{Impossible de démarrer l\'instance}}', 'NOK');
     }
     // no body if success
     if (isset($result['Status']) && $result['Status']) {
-      $this->_setMsg('Démarrage en cours', 'OK');
+      $this->_setMsg('{{Démarrage en cours}}', 'OK');
       return;
     }
   }
@@ -365,18 +365,18 @@ class cubecoders extends eqLogic {
   public function stopInstance($uuid) {
     $instanceSession = $this->_LoginInstance($uuid);
     if (!$instanceSession[0]) {
-      $this->_setMsg('Impossible de se connecter à l\'instance', 'NOK');
+      $this->_setMsg('{{Impossible de se connecter à l\'instance}}', 'NOK');
       return;
     }
     sleep(0.2);
     $result = $this->_requestAPI($instanceSession[3] . '/API/Core/Stop', 'POST', '{"token":"' . $instanceSession[1] . '","SESSIONID":"' . $instanceSession[2] . '"}');
     $this->_LogoutInstance($instanceSession);
     if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
-      $this->_setMsg('Impossible d\'arrêter l\'instance', 'NOK');
+      $this->_setMsg('{{Impossible d\'arrêter l\'instance}}', 'NOK');
     }
     // no body if success
     if (isset($result['Status']) && $result['Status']) {
-      $this->_setMsg('Arrêt en cours', 'OK');
+      $this->_setMsg('{{Arrêt en cours}}', 'OK');
       return;
     }
   }
@@ -384,18 +384,18 @@ class cubecoders extends eqLogic {
   public function restartInstance($uuid) {
     $instanceSession = $this->_LoginInstance($uuid);
     if (!$instanceSession[0]) {
-      $this->_setMsg('Impossible de se connecter à l\'instance', 'NOK');
+      $this->_setMsg('{{Impossible de se connecter à l\'instance}}', 'NOK');
       return;
     }
     sleep(0.2);
     $result = $this->_requestAPI($instanceSession[3] . '/API/Core/Restart', 'POST', '{"token":"' . $instanceSession[1] . '","SESSIONID":"' . $instanceSession[2] . '"}');
     $this->_LogoutInstance($instanceSession);
     if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
-      $this->_setMsg('Impossible de redémarrer l\'instance', 'NOK');
+      $this->_setMsg('{{Impossible de redémarrer l\'instance}}', 'NOK');
     }
     // no body if success
     if (isset($result['Status']) && $result['Status']) {
-      $this->_setMsg('Redémarrage en cours', 'OK');
+      $this->_setMsg('{{Redémarrage en cours}}', 'OK');
       return;
     }
   }
@@ -403,18 +403,18 @@ class cubecoders extends eqLogic {
   public function killInstance($uuid) {
     $instanceSession = $this->_LoginInstance($uuid);
     if (!$instanceSession[0]) {
-      $this->_setMsg('Impossible de se connecter à l\'instance', 'NOK');
+      $this->_setMsg('{{Impossible de se connecter à l\'instance}}', 'NOK');
       return;
     }
     sleep(0.2);
     $result = $this->_requestAPI($instanceSession[3] . '/API/Core/Kill', 'POST', '{"token":"' . $instanceSession[1] . '","SESSIONID":"' . $instanceSession[2] . '"}');
     $this->_LogoutInstance($instanceSession);
     if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
-      $this->_setMsg('Impossible de tuer l\'instance', 'NOK');
+      $this->_setMsg('{{Impossible de tuer l\'instance}}', 'NOK');
     }
     // no body if success
     if (isset($result['Status']) && $result['Status']) {
-      $this->_setMsg('Instance en cours d\'arrêt forcé', 'OK');
+      $this->_setMsg('{{Instance en cours d\'arrêt forcé}}', 'OK');
       return;
     }
   }
@@ -422,18 +422,18 @@ class cubecoders extends eqLogic {
   public function pauseInstance($uuid) {
     $instanceSession = $this->_LoginInstance($uuid);
     if (!$instanceSession[0]) {
-      $this->_setMsg('Impossible de se connecter à l\'instance', 'NOK');
+      $this->_setMsg('{{Impossible de se connecter à l\'instance}}', 'NOK');
       return;
     }
     sleep(0.2);
     $result = $this->_requestAPI($instanceSession[3] . '/API/Core/Pause', 'POST', '{"token":"' . $instanceSession[1] . '","SESSIONID":"' . $instanceSession[2] . '"}');
     $this->_LogoutInstance($instanceSession);
     if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
-      $this->_setMsg('Impossible de mettre en pause l\'instance', 'NOK');
+      $this->_setMsg('{{Impossible de mettre en pause l\'instance}}', 'NOK');
     }
     // no body if success
     if (isset($result['Status']) && $result['Status']) {
-      $this->_setMsg('mise en pause en cours', 'OK');
+      $this->_setMsg('{{mise en pause en cours}}', 'OK');
       return;
     }
   }
@@ -441,18 +441,18 @@ class cubecoders extends eqLogic {
   public function resumeInstance($uuid) {
     $instanceSession = $this->_LoginInstance($uuid);
     if (!$instanceSession[0]) {
-      $this->_setMsg('Impossible de se connecter à l\'instance', 'NOK');
+      $this->_setMsg('{{Impossible de se connecter à l\'instance}}', 'NOK');
       return;
     }
     sleep(0.2);
     $result = $this->_requestAPI($instanceSession[3] . '/API/Core/Resume', 'POST', '{"token":"' . $instanceSession[1] . '","SESSIONID":"' . $instanceSession[2] . '"}');
     $this->_LogoutInstance($instanceSession);
     if ((isset($result['Title'])) && ($result['Title'] == 'Unauthorized Access')) {
-      $this->_setMsg('Impossible de reprendre l\'instance', 'NOK');
+      $this->_setMsg('{{Impossible de reprendre l\'instance}}', 'NOK');
     }
     // no body if success
     if (isset($result['Status']) && $result['Status']) {
-      $this->_setMsg('reprise en cours','OK');
+      $this->_setMsg('{{reprise en cours}}','OK');
       return;
     }
   }

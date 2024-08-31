@@ -24,6 +24,55 @@ $("#table_cmd").sortable({
   forcePlaceholderSize: true
 })
 
+$('#in_searchEqlogic2').off('keyup').keyup(function () {
+  var search = $(this).value().toLowerCase();
+  search = search.normalize('NFD').replace(/[\u0300-\u036f]/g, "")
+  if(search == ''){
+    $('.eqLogicDisplayCard.second').show();
+    $('.eqLogicThumbnailContainer.second').packery();
+    return;
+  }
+  $('.eqLogicDisplayCard.second').hide();
+  $('.eqLogicDisplayCard.second .name').each(function(){
+    var text = $(this).text().toLowerCase();
+    text = text.normalize('NFD').replace(/[\u0300-\u036f]/g, "")
+    if(text.indexOf(search) >= 0){
+      $(this).closest('.eqLogicDisplayCard.second').show();
+    }
+  });
+  $('.eqLogicThumbnailContainer.second').packery();
+});
+$('#bt_resetEqlogicSearch2').on('click', function () {
+  $('#in_searchEqlogic2').val('')
+  $('#in_searchEqlogic2').keyup()
+})
+
+$('.eqLogicAttr[data-l1key=configuration][data-l2key=type]').on('change',function(){
+	if ($(this).value() == 'account') {
+		$('#div_loginGithub').show();
+		$('#div_tokenGithub').show();
+	} else {
+		$('#div_loginGithub').hide();
+		$('#div_tokenGithub').hide();
+	}
+});
+
+// fonction executée par jeedom lors de l'affichage des details d'un eqlogic
+function printEqLogic(_eqLogic) {
+	if (!isset(_eqLogic)) {
+		var _eqLogic = {configuration: {}};
+	}
+	if (!isset(_eqLogic.configuration)) {
+		_eqLogic.configuration = {};
+	}
+	if (_eqLogic.configuration.type=="server") {
+    $(".forserverinput").show();
+	}
+	if (_eqLogic.configuration.type=="instance") {
+    $(".forserverinput").hide();
+	}
+}
+
 /* Fonction permettant l'affichage des commandes dans l'équipement */
 function addCmdToTable(_cmd) {
   if (!isset(_cmd)) {
@@ -85,3 +134,25 @@ function addCmdToTable(_cmd) {
     }
   })
 }
+
+$('.eqLogicAction[data-action=discover]').on('click', function (e) {
+	$.ajax({// fonction permettant de faire de l'ajax
+		type: "POST", // methode de transmission des données au fichier php
+		url: "plugins/cubecoders/core/ajax/cubecoders.ajax.php", // url du fichier php
+		data: {
+			action: "syncCubecoders"
+		},
+		dataType: 'json',
+		error: function (request, status, error) {
+			handleAjaxError(request, status, error);
+		},
+		success: function (data) { // si l'appel a bien fonctionné
+			if (data.state != 'ok') {
+				$('#div_alert').showAlert({message: data.result, level: 'danger'});
+				return;
+			}
+			$('#div_alert').showAlert({message: '{{Synchronisation réussie}}', level: 'success'});
+			location.reload();
+	  }
+	});
+});
