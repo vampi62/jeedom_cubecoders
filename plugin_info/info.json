@@ -1,25 +1,35 @@
 {
-	"id" : "cubecoders",
-	"name" : "cubecoders",
-	"description" : {
-		"fr_FR": "connecter un serveur cubecoders à jeedom"
+	"id": "cubecoders",
+	"name": "cubecoders",
+	"description": {
+		"fr_FR": "connecter un serveur cubecoders à jeedom",
+		"en_US": "connect a cubecoders server to jeedom",
+		"es_ES": "conectar un servidor cubecoders a jeedom",
+		"de_DE": "einen cubecoders-Server mit jeedom verbinden",
+		"it_IT": "collegare un server cubecoders a jeedom",
+		"pt_PT": "ligar um servidor cubecoders ao jeedom"
 	},
-	"licence" : "AGPL",
-	"author" : "vampi62",
-	"require" : "4.2.0",
-	"category" : "monitoring",
-	"hasDependency" : false,
-	"hasOwnDeamon" : false,
-	"maxDependancyInstallTime" : 0,
-	"changelog" : "https://github.com/vampi62/jeedom_cubecoders/blob/main/docs/fr_FR/changelog.md",
-	"documentation" : "https://github.com/vampi62/jeedom_cubecoders/blob/main/docs/fr_FR/index.md",
-	"changelog_beta" : "https://github.com/vampi62/jeedom_cubecoders/blob/main/docs/fr_FR/beta/changelog.md",
-	"documentation_beta" : "https://github.com/vampi62/jeedom_cubecoders/blob/main/docs/fr_FR/beta/index.md",
-	"link" : {
-		"forum":"https://github.com/vampi62/jeedom_cubecoders/issues"
+	"licence": "AGPL",
+	"author": "vampi62",
+	"require": "4.2.0",
+	"category": "monitoring",
+	"hasDependency": false,
+	"hasOwnDeamon": false,
+	"maxDependancyInstallTime": 0,
+	"changelog": "https://github.com/vampi62/jeedom_cubecoders/blob/main/docs/fr_FR/changelog.md",
+	"documentation": "https://github.com/vampi62/jeedom_cubecoders/blob/main/docs/fr_FR/index.md",
+	"changelog_beta": "https://github.com/vampi62/jeedom_cubecoders/blob/main/docs/fr_FR/beta/changelog.md",
+	"documentation_beta": "https://github.com/vampi62/jeedom_cubecoders/blob/main/docs/fr_FR/beta/index.md",
+	"link": {
+		"forum": "https://github.com/vampi62/jeedom_cubecoders/issues"
 	},
 	"language": [
-		"fr_FR"
+		"de_DE",
+		"en_US",
+		"es_ES",
+		"fr_FR",
+		"it_IT",
+		"pt_PT"
 	],
 	"compatibility": [
 		"miniplus",
